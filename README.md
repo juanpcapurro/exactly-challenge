@@ -31,6 +31,7 @@
 - [ ] check that I actually included natspec and research a cool presentation for it
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
     - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
+    - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
 
 ## Assumptions
 

@@ -10,4 +10,10 @@ contract ETHPool is ERC20{
     function mint() public payable {
         _mint(msg.sender, msg.value);
     }
+
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+        // TODO: should I add a reentrancy guard or is doing it in the end enough?
+        payable(msg.sender).transfer(amount);
+    }
 }

@@ -7,14 +7,17 @@ describe('ETHPool', function () {
   let ethpool: ETHPool
   let signers: Array<Signer>
   let deployer: Signer
-  const provider = ethers.provider
+  let aliceAddress: string
+  const { getBalance } = ethers.provider
   let alice: Signer
+  let bob: Signer
   beforeEach(async () => {
     const ETHPoolFactory = await ethers.getContractFactory('ETHPool')
     ethpool = (await ETHPoolFactory.deploy()) as ETHPool
     await ethpool.deployed()
     signers = await ethers.getSigners()
-    ;[deployer, alice] = signers
+    ;[deployer, alice, bob] = signers
+    aliceAddress = await alice.getAddress()
   })
 
   it('has name, symbol and decimals', async function () {
@@ -30,19 +33,53 @@ describe('ETHPool', function () {
   })
   describe('minting', () => {
     describe('WHEN alice mints', () => {
-      const value: BigNumber = BigNumber.from(10).mul(ethers.constants.WeiPerEther)
-      let previousAliceBalance: BigNumber
+      const value: BigNumber = ethers.constants.WeiPerEther.mul(10)
+      let aliceEthBalanceBeforeMint: BigNumber
       beforeEach(async () => {
-        previousAliceBalance = await provider.getBalance(await alice.getAddress())
+        aliceEthBalanceBeforeMint = await getBalance(aliceAddress)
         ethpool = ethpool.connect(alice)
         const tx = await ethpool.mint({ value })
         await tx.wait()
       })
       it('THEN alices token balance is increased', async () => {
-        expect(await ethpool.balanceOf(await alice.getAddress())).to.eq(value)
+        expect(await ethpool.balanceOf(aliceAddress)).to.eq(value)
       })
       it('AND alices eth balance is decreased', async () => {
-        expect(await provider.getBalance(await alice.getAddress())).to.be.lt(previousAliceBalance.sub(value))
+        expect(await getBalance(aliceAddress)).to.be.lt(aliceEthBalanceBeforeMint.sub(value))
+      })
+      describe('AND WHEN alice burns', () => {
+        const value: BigNumber = ethers.constants.WeiPerEther.mul(3)
+        let aliceEthBalanceBeforeBurn: BigNumber
+        beforeEach(async () => {
+          aliceEthBalanceBeforeBurn = await getBalance(aliceAddress)
+          const tx = await ethpool.burn(value)
+          await tx.wait()
+        })
+        it('THEN alices token balance is decreased', async () => {
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(ethers.constants.WeiPerEther.mul(7))
+        })
+        it('AND alices eth balance is increased', async () => {
+          expect(await getBalance(aliceAddress)).to.be.lt(aliceEthBalanceBeforeMint)
+          expect(await getBalance(aliceAddress)).to.be.gt(aliceEthBalanceBeforeBurn)
+        })
+      })
+    })
+  })
+
+  describe('burning more than the users balance', () => {
+    describe('GIVEN alice mints 10 AND bob mints 10', () => {
+      const value: BigNumber = ethers.constants.WeiPerEther.mul(10)
+      beforeEach(async () => {
+        ethpool = ethpool.connect(bob)
+        await ethpool.mint({ value })
+        ethpool = ethpool.connect(alice)
+        const tx = await ethpool.mint({ value })
+        await tx.wait()
+      })
+      it('WHEN alice tries to burn 15, THEN it reverts', async () => {
+        await expect(ethpool.burn(ethers.constants.WeiPerEther.mul(15))).to.be.revertedWith(
+          'burn amount exceeds balance'
+        )
       })
     })
   })
