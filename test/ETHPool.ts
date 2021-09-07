@@ -199,6 +199,40 @@ describe('ETHPool', function () {
     })
   })
 
+  describe('proposed example 1', () => {
+    describe('GIVEN alice mints 100 AND bob mints 300 AND 200 in rewards is deposited', () => {
+      beforeEach(async () => {
+        ethpool = ethpool.connect(alice)
+        await (await ethpool.mint({ value: WeiPerEther.mul(100) })).wait()
+        ethpool = ethpool.connect(bob)
+        await (await ethpool.mint({ value: WeiPerEther.mul(300) })).wait()
+        ethpool = ethpool.connect(deployer)
+        await (await ethpool.depositRewards({ value: WeiPerEther.mul(200) })).wait()
+      })
+
+      describe('WHEN alice and bob burn their tokens', async () => {
+        let aliceTx: ContractTransaction
+        let bobTx: ContractTransaction
+        beforeEach(async () => {
+          ethpool = ethpool.connect(alice)
+          aliceTx = await ethpool.burn(WeiPerEther.mul(100))
+          await aliceTx.wait()
+          ethpool = ethpool.connect(bob)
+          bobTx = await ethpool.burn(WeiPerEther.mul(300))
+          await bobTx.wait()
+        })
+        it('THEN alice receives 150 eth', async () => {
+          await expect(aliceTx)
+            .to.emit(ethpool, 'Burn')
+            .withArgs(aliceAddress, WeiPerEther.mul(100), WeiPerEther.mul(150))
+        })
+        it('THEN bob receives 450 eth', async () => {
+          await expect(bobTx).to.emit(ethpool, 'Burn').withArgs(bobAddress, WeiPerEther.mul(300), WeiPerEther.mul(450))
+        })
+      })
+    })
+  })
+
   describe('burning more than the users balance', () => {
     describe('GIVEN alice mints 10 AND bob mints 10', () => {
       const value: BigNumber = WeiPerEther.mul(10)
