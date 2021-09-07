@@ -34,10 +34,14 @@
     - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
 
 ## Assumptions
+- Team address cant mint tokens, only deposit rewards: just for simplicity
 
 ## Technical notes
 
 ## Docs
+Shares of the ETH pool are represented by an ERC20 token. Initially, they map
+1:1 to eth, but once rewards are deposited, they'll start to map to more than 1
+eth per 1 share (POOL token)
 
 ### setup
 

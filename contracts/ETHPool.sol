@@ -5,10 +5,20 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import "hardhat/console.sol";
 
 contract ETHPool is ERC20{
-    constructor() ERC20("ETHPOOL rewards distribution token", "POOL") { }
+    address public immutable teamAddress;
+
+    constructor() ERC20("ETHPOOL rewards distribution token", "POOL") {
+        teamAddress = msg.sender;
+    }
 
     function mint() public payable {
+        require(msg.sender != teamAddress, "team address cant mint");
         _mint(msg.sender, msg.value);
+    }
+
+    function depositRewards() public payable {
+        require(totalSupply() > 0, "mint first");
+        require(msg.sender == teamAddress, "only team address can deposit");
     }
 
     function burn(uint256 amount) public {

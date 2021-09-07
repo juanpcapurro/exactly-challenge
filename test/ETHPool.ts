@@ -8,6 +8,8 @@ describe('ETHPool', function () {
   let signers: Array<Signer>
   let deployer: Signer
   let aliceAddress: string
+  let deployerAddress: string
+  const { WeiPerEther } = ethers.constants
   const { getBalance } = ethers.provider
   let alice: Signer
   let bob: Signer
@@ -17,13 +19,14 @@ describe('ETHPool', function () {
     await ethpool.deployed()
     signers = await ethers.getSigners()
     ;[deployer, alice, bob] = signers
-    aliceAddress = await alice.getAddress()
+    ;[deployerAddress, aliceAddress] = await Promise.all([deployer.getAddress(), alice.getAddress()])
   })
 
-  it('has name, symbol and decimals', async function () {
+  it('has name, symbol, decimals and teamAddress', async function () {
     expect(await ethpool.name()).to.equal('ETHPOOL rewards distribution token')
     expect(await ethpool.symbol()).to.equal('POOL')
     expect(await ethpool.decimals()).to.equal(18)
+    expect(await ethpool.teamAddress()).to.equal(deployerAddress)
   })
 
   it('rejects plain transfers', async function () {
@@ -31,9 +34,20 @@ describe('ETHPool', function () {
     await expect(alice.sendTransaction({ to: ethpool.address, value: 100 })).to.be.revertedWith('no fallback')
     await expect(deployer.sendTransaction({ to: ethpool.address, value: 100 })).to.be.revertedWith('no fallback')
   })
+
+  describe('rewards', () => {
+    it('team address cant mint', async function () {
+      await expect(ethpool.mint({ value: 100 })).to.be.revertedWith('team address cant mint')
+    })
+
+    it('rewards cant be deposited before a mint', async function () {
+      await expect(ethpool.depositRewards({ value: 100 })).to.be.revertedWith('mint first')
+    })
+  })
+
   describe('minting', () => {
     describe('WHEN alice mints', () => {
-      const value: BigNumber = ethers.constants.WeiPerEther.mul(10)
+      const value: BigNumber = WeiPerEther.mul(10)
       let aliceEthBalanceBeforeMint: BigNumber
       beforeEach(async () => {
         aliceEthBalanceBeforeMint = await getBalance(aliceAddress)
@@ -48,7 +62,7 @@ describe('ETHPool', function () {
         expect(await getBalance(aliceAddress)).to.be.lt(aliceEthBalanceBeforeMint.sub(value))
       })
       describe('AND WHEN alice burns', () => {
-        const value: BigNumber = ethers.constants.WeiPerEther.mul(3)
+        const value: BigNumber = WeiPerEther.mul(3)
         let aliceEthBalanceBeforeBurn: BigNumber
         beforeEach(async () => {
           aliceEthBalanceBeforeBurn = await getBalance(aliceAddress)
@@ -56,7 +70,7 @@ describe('ETHPool', function () {
           await tx.wait()
         })
         it('THEN alices token balance is decreased', async () => {
-          expect(await ethpool.balanceOf(aliceAddress)).to.eq(ethers.constants.WeiPerEther.mul(7))
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(WeiPerEther.mul(7))
         })
         it('AND alices eth balance is increased', async () => {
           expect(await getBalance(aliceAddress)).to.be.lt(aliceEthBalanceBeforeMint)
@@ -68,7 +82,7 @@ describe('ETHPool', function () {
 
   describe('burning more than the users balance', () => {
     describe('GIVEN alice mints 10 AND bob mints 10', () => {
-      const value: BigNumber = ethers.constants.WeiPerEther.mul(10)
+      const value: BigNumber = WeiPerEther.mul(10)
       beforeEach(async () => {
         ethpool = ethpool.connect(bob)
         await ethpool.mint({ value })
@@ -77,9 +91,7 @@ describe('ETHPool', function () {
         await tx.wait()
       })
       it('WHEN alice tries to burn 15, THEN it reverts', async () => {
-        await expect(ethpool.burn(ethers.constants.WeiPerEther.mul(15))).to.be.revertedWith(
-          'burn amount exceeds balance'
-        )
+        await expect(ethpool.burn(WeiPerEther.mul(15))).to.be.revertedWith('burn amount exceeds balance')
       })
     })
   })
