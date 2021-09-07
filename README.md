@@ -1,5 +1,5 @@
 ## TODO
-- [ ] project boilerplate
+- [x] project boilerplate
     - [x] ts lint
     - [x] solidity lint
     - [x] mock contract
@@ -7,22 +7,21 @@
     - [x] hardhat.config.js
     - [x] package.json
     - [x] secrets
-- [ ] send estimation
-- [ ] base implementation
-    - [ ] contract receives eth and mints an erc20
-    - [ ] user asks for a burn and
-        - [ ] their erc20 is burned
-        - [ ] a share of the eth is returned
-    - [ ] would front-running be an issue? research passing a min amount of expected erc20
-    - [ ] contract receives eth from Team Address and doesn't mint erc20
-        - [ ] user receives their share of the rewards
+- [x] send estimation
+- [x] base implementation
+    - [x] contract receives eth and mints an erc20
+    - [x] user asks for a burn and
+        - [x] their erc20 is burned
+        - [x] a share of the eth is returned
+    - [x] contract receives eth from Team Address and doesn't mint erc20
+        - [x] user receives their share of the rewards
 - [ ] figure out if ^ is good enough
 - [ ] tests:
     - [ ] Example 1
     - [ ] Example 2
-    - [ ] Edge case: reward without previous mint
-    - [ ] Edge case: first mint
-    - [ ] Edge case: burns get the totalsupply down to zero
+    - [x] Edge case: reward without previous mint
+    - [x] Edge case: first mint
+    - [x] Edge case: burns get the totalsupply down to zero
 - [ ] configure testnet deploy
 - [ ] configure hardhat task to
     - [ ] send rewards?
@@ -32,20 +31,30 @@
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
     - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
     - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
+    - [ ] would front-running be an issue? research passing a min amount of expected erc20/eth
 
 ## Assumptions
+- Team address cant mint tokens, only deposit rewards: just for simplicity
+- The deployer is set as the 'team address', and this cannot be changed: just for simplicity
 
 ## Technical notes
+While I'm pretty happy with how the project boilerplate turned out, linting with `tsserver` yields lots of errors because it doesn't recognize the matchers injected into chai by waffle or the ethers instance injected into hardhat, among other things.
+
+The `hardhat-typechain` plugin says that typechain bindings for contracts are updated automatically but that's not the case.
 
 ## Docs
+Shares of the ETH pool are represented by an ERC20 token. Initially, they map
+1:1 to eth, but once rewards are deposited, they'll start to map to more than 1
+eth per 1 share (POOL token)
 
 ### setup
 
 - have node v12 installed
 - copy `.env.example` to `.env` and fill out the fields defined within it
 - run `npm install`
-- you can now run the tests witn `npm run test`. It's also configured as a git pre-push hook
-- you can now lint the codebase with the tests witn `npm run lint:ts` / `npm run lint:sol`. It's also configured as a git pre-commit hook
+- generate the typechain bindings with `npm run typechain`, you'll have to re-run this if you modify the contracts' API
+- you can now run the tests witn `npm run test`. It's also configured as a git pre-push hook as a poor man's CI
+- you can now lint the codebase with the tests witn `npm run lint:ts` / `npm run lint:sol`. It's also configured as a git pre-commit hook as a poor man's CI
 
 ## Original spec:
 
