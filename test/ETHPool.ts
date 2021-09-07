@@ -39,7 +39,7 @@ describe('ETHPool', function () {
     await expect(deployer.sendTransaction({ to: ethpool.address, value: 100 })).to.be.revertedWith('no fallback')
   })
 
-  describe('rewards', () => {
+  describe('rewards: single mint, single reward', () => {
     it('team address cant mint', async function () {
       await expect(ethpool.mint({ value: 100 })).to.be.revertedWith('team address cant mint')
     })
@@ -88,6 +88,36 @@ describe('ETHPool', function () {
         // This is because there aren't either pool or rewards
         it('AND token price is 1 again', async function () {
           expect(await ethpool.tokenPrice()).to.equal(WeiPerEther)
+        })
+      })
+    })
+  })
+
+  describe('rewards: mint after reward deposit', () => {
+    describe('GIVEN alice mints 10 tokens with 10 eth AND 1 eth is added as a reward', () => {
+      let tx: ContractTransaction
+      beforeEach(async () => {
+        ethpool = ethpool.connect(alice)
+        ;(await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
+        ethpool = ethpool.connect(deployer)
+        tx = await ethpool.depositRewards({ value: WeiPerEther })
+        await tx.wait()
+      })
+      describe('WHEN alice mints with 11 ETH', () => {
+        beforeEach(async () => {
+          ethpool = ethpool.connect(alice)
+          tx = await ethpool.mint({ value: WeiPerEther.mul(11) })
+          await tx.wait()
+        })
+        it('THEN alices token balance is twenty', async () => {
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(WeiPerEther.mul(20))
+        })
+        it('AND a Mint event is emmitted showing the higher price', async () => {
+          await expect(tx).to.emit(ethpool, 'Mint').withArgs(aliceAddress, WeiPerEther.mul(10), WeiPerEther.mul(11))
+        })
+        // This is because there aren't either pool or rewards
+        it('AND token price is 1.1 again', async function () {
+          expect(await ethpool.tokenPrice()).to.equal(WeiPerEther.mul(11).div(10))
         })
       })
     })
