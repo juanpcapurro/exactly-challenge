@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { ETHPool } from '../typechain'
-import { Signer, BigNumber } from 'ethers'
+import { Signer, BigNumber, ContractTransaction } from 'ethers'
 
 describe('ETHPool', function () {
   let ethpool: ETHPool
@@ -9,7 +9,7 @@ describe('ETHPool', function () {
   let deployer: Signer
   let aliceAddress: string
   let deployerAddress: string
-  const { WeiPerEther } = ethers.constants
+  const { AddressZero, WeiPerEther } = ethers.constants
   const { getBalance } = ethers.provider
   let alice: Signer
   let bob: Signer
@@ -42,6 +42,36 @@ describe('ETHPool', function () {
 
     it('rewards cant be deposited before a mint', async function () {
       await expect(ethpool.depositRewards({ value: 100 })).to.be.revertedWith('mint first')
+    })
+
+    describe('GIVEN alice mints 10 tokens AND 1 eth is added as a reward', () => {
+      beforeEach(async () => {
+        ethpool = ethpool.connect(alice)
+        ;(await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
+        ethpool = ethpool.connect(deployer)
+        ;(await ethpool.depositRewards({ value: WeiPerEther })).wait()
+      })
+      describe('WHEN alice burns', () => {
+        let tx: ContractTransaction
+        let aliceEthBalanceBeforeBurn: BigNumber
+        beforeEach(async () => {
+          aliceEthBalanceBeforeBurn = await getBalance(aliceAddress)
+          ethpool = ethpool.connect(alice)
+          tx = await ethpool.burn(WeiPerEther.mul(10))
+          await tx.wait()
+        })
+        it('THEN alices token balance is zero', async () => {
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(0)
+        })
+        it('AND alice received rewards', async () => {
+          const balanceDifference = (await getBalance(aliceAddress)).sub(aliceEthBalanceBeforeBurn)
+          // assume not more than 0.02 eth spent on gas
+          expect(balanceDifference).to.be.gt(WeiPerEther.mul(11).sub(WeiPerEther.mul(2).div(100)))
+        })
+        it('AND the burn was of only 10 tokens', async () => {
+          await expect(tx).to.emit(ethpool, 'Transfer').withArgs(aliceAddress, AddressZero, WeiPerEther.mul(10))
+        })
+      })
     })
   })
 
