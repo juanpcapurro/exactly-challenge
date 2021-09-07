@@ -29,6 +29,10 @@ describe('ETHPool', function () {
     expect(await ethpool.teamAddress()).to.equal(deployerAddress)
   })
 
+  it('has tokenPrice 1 initially', async function () {
+    expect(await ethpool.tokenPrice()).to.equal(WeiPerEther)
+  })
+
   it('rejects plain transfers', async function () {
     // 100 wei, amount doesnt really matter
     await expect(alice.sendTransaction({ to: ethpool.address, value: 100 })).to.be.revertedWith('no fallback')
@@ -44,14 +48,17 @@ describe('ETHPool', function () {
       await expect(ethpool.depositRewards({ value: 100 })).to.be.revertedWith('mint first')
     })
 
-    describe('GIVEN alice mints 10 tokens AND 1 eth is added as a reward', () => {
+    describe('WHEN alice mints 10 tokens AND 1 eth is added as a reward', () => {
       beforeEach(async () => {
         ethpool = ethpool.connect(alice)
         ;(await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
         ethpool = ethpool.connect(deployer)
         ;(await ethpool.depositRewards({ value: WeiPerEther })).wait()
       })
-      describe('WHEN alice burns', () => {
+      it('THEN token price is 1.1', async function () {
+        expect(await ethpool.tokenPrice()).to.equal(WeiPerEther.mul(11).div(10))
+      })
+      describe('AND WHEN alice burns', () => {
         let tx: ContractTransaction
         let aliceEthBalanceBeforeBurn: BigNumber
         beforeEach(async () => {
@@ -70,6 +77,10 @@ describe('ETHPool', function () {
         })
         it('AND the burn was of only 10 tokens', async () => {
           await expect(tx).to.emit(ethpool, 'Transfer').withArgs(aliceAddress, AddressZero, WeiPerEther.mul(10))
+        })
+        // This is because there aren't either pool or rewards
+        it('AND token price is 1 again', async function () {
+          expect(await ethpool.tokenPrice()).to.equal(WeiPerEther)
         })
       })
     })
@@ -90,6 +101,9 @@ describe('ETHPool', function () {
       })
       it('AND alices eth balance is decreased', async () => {
         expect(await getBalance(aliceAddress)).to.be.lt(aliceEthBalanceBeforeMint.sub(value))
+      })
+      it('AND token price is 1', async function () {
+        expect(await ethpool.tokenPrice()).to.equal(WeiPerEther)
       })
       describe('AND WHEN alice burns', () => {
         const value: BigNumber = WeiPerEther.mul(3)

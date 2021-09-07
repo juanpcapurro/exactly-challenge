@@ -31,7 +31,7 @@ contract ETHPool is ERC20{
 
     // returned with precision 18
     function tokenPrice() public view returns (uint256){
-        return address(this).balance * WAD / totalSupply();
+        return totalSupply() == 0 ? WAD : address(this).balance * WAD / totalSupply();
     }
 
     function ethFromBurn(uint256 amount, uint256 price) public pure returns (uint256){
