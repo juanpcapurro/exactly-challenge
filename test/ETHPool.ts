@@ -8,6 +8,7 @@ describe('ETHPool', function () {
   let signers: Array<Signer>
   let deployer: Signer
   let aliceAddress: string
+  let bobAddress: string
   let deployerAddress: string
   const { AddressZero, WeiPerEther } = ethers.constants
   const { getBalance } = ethers.provider
@@ -19,7 +20,11 @@ describe('ETHPool', function () {
     await ethpool.deployed()
     signers = await ethers.getSigners()
     ;[deployer, alice, bob] = signers
-    ;[deployerAddress, aliceAddress] = await Promise.all([deployer.getAddress(), alice.getAddress()])
+    ;[deployerAddress, aliceAddress, bobAddress] = await Promise.all([
+      deployer.getAddress(),
+      alice.getAddress(),
+      bob.getAddress(),
+    ])
   })
 
   it('has name, symbol, decimals and teamAddress', async function () {
@@ -52,7 +57,7 @@ describe('ETHPool', function () {
       let tx: ContractTransaction
       beforeEach(async () => {
         ethpool = ethpool.connect(alice)
-        ;(await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
+        await (await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
         ethpool = ethpool.connect(deployer)
         tx = await ethpool.depositRewards({ value: WeiPerEther })
         await tx.wait()
@@ -98,7 +103,7 @@ describe('ETHPool', function () {
       let tx: ContractTransaction
       beforeEach(async () => {
         ethpool = ethpool.connect(alice)
-        ;(await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
+        await (await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
         ethpool = ethpool.connect(deployer)
         tx = await ethpool.depositRewards({ value: WeiPerEther })
         await tx.wait()
@@ -109,7 +114,7 @@ describe('ETHPool', function () {
           tx = await ethpool.mint({ value: WeiPerEther.mul(11) })
           await tx.wait()
         })
-        it('THEN alices token balance is twenty', async () => {
+        it('THEN alices token balance is twenty (tokens are more expensive now)', async () => {
           expect(await ethpool.balanceOf(aliceAddress)).to.eq(WeiPerEther.mul(20))
         })
         it('AND a Mint event is emmitted showing the higher price', async () => {
@@ -118,6 +123,30 @@ describe('ETHPool', function () {
         // This is because there aren't either pool or rewards
         it('AND token price is 1.1 again', async function () {
           expect(await ethpool.tokenPrice()).to.equal(WeiPerEther.mul(11).div(10))
+        })
+      })
+    })
+  })
+
+  describe('minting after a burn moved balance to zero', () => {
+    describe('GIVEN alice minted, AND rewards were deposited AND alice burned', () => {
+      beforeEach(async () => {
+        ethpool = ethpool.connect(alice)
+        await (await ethpool.mint({ value: WeiPerEther.mul(10) })).wait()
+        ethpool = ethpool.connect(deployer)
+        await (await ethpool.depositRewards({ value: WeiPerEther })).wait()
+        ethpool = ethpool.connect(alice)
+        await (await ethpool.burn(WeiPerEther.mul(10))).wait()
+      })
+      describe('WHEN bob tries to mint with 10 eth', () => {
+        let tx: ContractTransaction
+        beforeEach(async () => {
+          ethpool = ethpool.connect(bob)
+          tx = await ethpool.mint({ value: WeiPerEther.mul(10) })
+          await tx.wait()
+        })
+        it('THEN bobs token balance is increased to 10 tokens', async () => {
+          expect(await ethpool.balanceOf(bobAddress)).to.eq(WeiPerEther.mul(10))
         })
       })
     })
