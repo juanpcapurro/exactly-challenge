@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "hardhat compile",
+    "typechain": "hardhat typechain",
     "test": "hardhat test test/*.ts",
     "lint:ts": "eslint hardhat.config.ts test/*.ts",
     "lint:sol": "find contracts -regex '.*\\.sol$' | xargs solhint -f table"
