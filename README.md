@@ -17,8 +17,8 @@
         - [x] user receives their share of the rewards
 - [ ] figure out if ^ is good enough
 - [ ] tests:
-    - [ ] Example 1
-    - [ ] Example 2
+    - [x] Example 1
+    - [x] Example 2
     - [x] Edge case: reward without previous mint
     - [x] Edge case: first mint
     - [x] Edge case: burns get the totalsupply down to zero
