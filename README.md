@@ -23,11 +23,11 @@
     - [x] Edge case: first mint
     - [x] Edge case: burns get the totalsupply down to zero
     - [ ] reentrancy
-- [ ] configure testnet deploy
+- [x] configure testnet deploy
 - [ ] configure hardhat task to
     - [ ] send rewards?
     - [ ] get eth balance and other stats
-- [ ] configure etherscan verification
+- [x] configure etherscan verification
 - [ ] check that I actually included natspec and research a cool presentation for it
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
     - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
@@ -51,6 +51,8 @@ Or by using [the hosted version](https://static.capu.tech/other/exactly-rtd/)
 - generate the typechain bindings with `npm run typechain`, you'll have to re-run this if you modify the contracts' API
 - you can now run the tests witn `npm run test`. It's also configured as a git pre-push hook as a poor man's CI
 - you can now lint the codebase with the tests witn `npm run lint:ts` / `npm run lint:sol`. It's also configured as a git pre-commit hook as a poor man's CI
+- the contract can be deployed to kovan with `npm run deploy`. Pass the `--reset` flag if you want to overwrite a previous deployent
+- the contract can be verified in etherscan with `npm run verify <contractAddress>`, passing the contract address logged by ^
 
 ## Original spec:
 

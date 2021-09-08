@@ -9,7 +9,9 @@
     "build": "hardhat compile",
     "typechain": "hardhat typechain",
     "test": "hardhat test test/*.ts",
-    "lint:ts": "eslint hardhat.config.ts test/*.ts",
+    "deploy": "hardhat deploy --network kovan",
+    "verify": "hardhat verify --network kovan",
+    "lint:ts": "eslint hardhat.config.ts test/*.ts deploy/*.ts",
     "lint:sol": "find contracts -regex '.*\\.sol$' | xargs solhint -f table"
   },
   "author": "Juan Pablo Capurro",
