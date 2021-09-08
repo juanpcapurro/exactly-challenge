@@ -3,7 +3,7 @@ typechain/
 tags
 
 # documentation
-docs/
+docs/_build
 
 # truffle build directory
 artifacts/
