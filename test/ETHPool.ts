@@ -38,6 +38,12 @@ describe('ETHPool', function () {
     expect(await ethpool.tokenPrice()).to.equal(WeiPerEther)
   })
 
+  it('only team address can deposit rewards', async function () {
+    const bobPool = ethpool.connect(bob)
+    await (await bobPool.mint({ value: 100 })).wait()
+    await expect(bobPool.depositRewards({ value: 100 })).to.be.revertedWith('only team address can deposit')
+  })
+
   it('rejects plain transfers', async function () {
     // 100 wei, amount doesnt really matter
     await expect(alice.sendTransaction({ to: ethpool.address, value: 100 })).to.be.revertedWith('no fallback')
@@ -68,6 +74,7 @@ describe('ETHPool', function () {
       it('AND a RewardsDeposited event is emmitted', async function () {
         await expect(tx).to.emit(ethpool, 'RewardsDeposited').withArgs(WeiPerEther, WeiPerEther.mul(11).div(10))
       })
+
       describe('AND WHEN alice burns', () => {
         let aliceEthBalanceBeforeBurn: BigNumber
         beforeEach(async () => {
