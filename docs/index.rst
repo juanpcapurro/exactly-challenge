@@ -7,4 +7,5 @@ ETHPool
 
     overview.rst
     tech-notes.rst
+    API.rst
 

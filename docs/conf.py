@@ -31,7 +31,9 @@ release = '1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinxcontrib.plantuml'
+    'sphinxcontrib.plantuml',
+    'sphinx.ext.autodoc',
+    'sphinxcontrib.soliditydomain'
 ]
 master_doc = 'index'
 
@@ -55,5 +57,5 @@ latex_elements = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'default'
+html_theme = 'sphinxdoc'
 html_sidebars = {}
