@@ -15,13 +15,14 @@
         - [x] a share of the eth is returned
     - [x] contract receives eth from Team Address and doesn't mint erc20
         - [x] user receives their share of the rewards
-- [ ] figure out if ^ is good enough
+- [x] figure out if ^ is good enough
 - [ ] tests:
     - [x] Example 1
     - [x] Example 2
     - [x] Edge case: reward without previous mint
     - [x] Edge case: first mint
     - [x] Edge case: burns get the totalsupply down to zero
+    - [ ] reentrancy
 - [ ] configure testnet deploy
 - [ ] configure hardhat task to
     - [ ] send rewards?
@@ -31,24 +32,19 @@
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
     - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
     - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
-    - [ ] would front-running be an issue? research passing a min amount of expected erc20/eth
-
-## Assumptions
-- Team address cant mint tokens, only deposit rewards: just for simplicity
-- The deployer is set as the 'team address', and this cannot be changed: just for simplicity
-
-## Technical notes
-While I'm pretty happy with how the project boilerplate turned out, linting with `tsserver` yields lots of errors because it doesn't recognize the matchers injected into chai by waffle or the ethers instance injected into hardhat, among other things.
-
-The `hardhat-typechain` plugin says that typechain bindings for contracts are updated automatically but that's not the case.
+    - [x] would front-running be an issue? research passing a min amount of expected erc20/eth
 
 ## Docs
-Shares of the ETH pool are represented by an ERC20 token. Initially, they map
-1:1 to eth, but once rewards are deposited, they'll start to map to more than 1
-eth per 1 share (POOL token)
+The proper docs are implemented as an (almost certainly overengineered) sphinx project under `/docs`
+
+you can view it by:
+- installing the dependencies with `pip3 install -r requirements.txt`
+- calling sphinx: `make singlehtml`
+- opening it in `yourbrowser _build/singlehtml/index.html`
+
+Or by using [the hosted version](https://static.capu.tech/other/exactly-rtd/)
 
 ### setup
-
 - have node v12 installed
 - copy `.env.example` to `.env` and fill out the fields defined within it
 - run `npm install`
