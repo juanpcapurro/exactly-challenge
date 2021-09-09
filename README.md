@@ -23,14 +23,18 @@
     - [x] Edge case: first mint
     - [x] Edge case: burns get the totalsupply down to zero
     - [ ] reentrancy
+    - [ ] send value in deploy tx
 - [x] configure testnet deploy
-- [ ] configure hardhat task to
-    - [ ] send rewards?
-    - [ ] get eth balance and other stats
+- [x] configure hardhat task to
+    - [x] send rewards? - nah, it wasn't asked and can be done easily via etherscan anyway
+    - [x] get eth balance and other stats
 - [x] configure etherscan verification
-- [ ] check that I actually included natspec and research a cool presentation for it
+- [x] check that I actually included natspec and research a cool presentation for it
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
-    - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
+    - [x] Am I introducing some constraint that would make some sort of upgradeability pattern difficult? -- upgradeability is way out of scope for this. but we could chat about the alternatives afterwards:
+        - [ ] full proxy upgradeability
+        - [ ] ERC20 functionality baked in, but other calls delegated to an implementation contract
+        - [ ] just be able to change the teamAddress
     - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
     - [x] would front-running be an issue? research passing a min amount of expected erc20/eth
 
