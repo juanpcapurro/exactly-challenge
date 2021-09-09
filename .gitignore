@@ -9,7 +9,6 @@ docs/_build
 artifacts/
 build/
 cache/
-deployments/
 
 # lock files
 package-json.lock

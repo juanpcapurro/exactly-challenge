@@ -44,6 +44,8 @@ you can view it by:
 
 Or by using [the hosted version](https://static.capu.tech/other/exactly-rtd/)
 
+The contract is deployed to address [0x2C50D85F4375C0732Ce02e8677aca13b7C84d66F, on the Kovan testnet](https://kovan.etherscan.io/address/0x2C50D85F4375C0732Ce02e8677aca13b7C84d66F)
+
 ### setup
 - have node v12 installed
 - copy `.env.example` to `.env` and fill out the fields defined within it
