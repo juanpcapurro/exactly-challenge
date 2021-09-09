@@ -23,14 +23,18 @@
     - [x] Edge case: first mint
     - [x] Edge case: burns get the totalsupply down to zero
     - [ ] reentrancy
-- [ ] configure testnet deploy
-- [ ] configure hardhat task to
-    - [ ] send rewards?
-    - [ ] get eth balance and other stats
-- [ ] configure etherscan verification
-- [ ] check that I actually included natspec and research a cool presentation for it
+    - [ ] send value in deploy tx
+- [x] configure testnet deploy
+- [x] configure hardhat task to
+    - [x] send rewards? - nah, it wasn't asked and can be done easily via etherscan anyway
+    - [x] get eth balance and other stats
+- [x] configure etherscan verification
+- [x] check that I actually included natspec and research a cool presentation for it
 - [ ] QWIMGWSOTMBIAVTTATITOWTK: Questions Where I Might Get Wildly Sidetracked Or They Might Be Interesting And Valuable, Trying To Answer Them Is The Only Way To Know
-    - [ ] Am I introducing some constraint that would make some sort of upgradeability pattern difficult?
+    - [x] Am I introducing some constraint that would make some sort of upgradeability pattern difficult? -- upgradeability is way out of scope for this. but we could chat about the alternatives afterwards:
+        - [ ] full proxy upgradeability
+        - [ ] ERC20 functionality baked in, but other calls delegated to an implementation contract
+        - [ ] just be able to change the teamAddress
     - [ ] Am I opening some vulnerability when transferring eth in a burn, especially if the caller is a contract and not an EOA?
     - [x] would front-running be an issue? research passing a min amount of expected erc20/eth
 
@@ -44,13 +48,18 @@ you can view it by:
 
 Or by using [the hosted version](https://static.capu.tech/other/exactly-rtd/)
 
+The contract is deployed to address [0x2C50D85F4375C0732Ce02e8677aca13b7C84d66F, on the Kovan testnet](https://kovan.etherscan.io/address/0x2C50D85F4375C0732Ce02e8677aca13b7C84d66F)
+
 ### setup
 - have node v12 installed
 - copy `.env.example` to `.env` and fill out the fields defined within it
-- run `npm install`
+- run `npm install` to install dependencies
 - generate the typechain bindings with `npm run typechain`, you'll have to re-run this if you modify the contracts' API
 - you can now run the tests witn `npm run test`. It's also configured as a git pre-push hook as a poor man's CI
 - you can now lint the codebase with the tests witn `npm run lint:ts` / `npm run lint:sol`. It's also configured as a git pre-commit hook as a poor man's CI
+- the contract can be deployed to kovan with `npm run deploy`. Pass the `--reset` flag if you want to overwrite a previous deployent.
+- the contract can be verified in etherscan with `npm run verify <contractAddress>`, passing the contract address logged by ^
+- there's a script to get a few parameters from the deployed contract, including its ETH balance: `npm run getInfo`. The deployment files are commited into the repo so you can run this straight away, instead of having to deploy your own contract.
 
 ## Original spec:
 
