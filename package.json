@@ -11,7 +11,8 @@
     "test": "hardhat test test/*.ts",
     "deploy": "hardhat deploy --network kovan",
     "verify": "hardhat verify --network kovan",
-    "lint:ts": "eslint hardhat.config.ts test/*.ts deploy/*.ts",
+    "getInfo": "hardhat run --network kovan scripts/getInfo.js",
+    "lint:ts": "eslint hardhat.config.ts scripts/*.js test/*.ts deploy/*.js",
     "lint:sol": "find contracts -regex '.*\\.sol$' | xargs solhint -f table"
   },
   "author": "Juan Pablo Capurro",

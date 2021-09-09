@@ -49,12 +49,13 @@ The contract is deployed to address [0x2C50D85F4375C0732Ce02e8677aca13b7C84d66F,
 ### setup
 - have node v12 installed
 - copy `.env.example` to `.env` and fill out the fields defined within it
-- run `npm install`
+- run `npm install` to install dependencies
 - generate the typechain bindings with `npm run typechain`, you'll have to re-run this if you modify the contracts' API
 - you can now run the tests witn `npm run test`. It's also configured as a git pre-push hook as a poor man's CI
 - you can now lint the codebase with the tests witn `npm run lint:ts` / `npm run lint:sol`. It's also configured as a git pre-commit hook as a poor man's CI
-- the contract can be deployed to kovan with `npm run deploy`. Pass the `--reset` flag if you want to overwrite a previous deployent
+- the contract can be deployed to kovan with `npm run deploy`. Pass the `--reset` flag if you want to overwrite a previous deployent.
 - the contract can be verified in etherscan with `npm run verify <contractAddress>`, passing the contract address logged by ^
+- there's a script to get a few parameters from the deployed contract, including its ETH balance: `npm run getInfo`. The deployment files are commited into the repo so you can run this straight away, instead of having to deploy your own contract.
 
 ## Original spec:
 
