@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { ETHPool } from '../typechain'
+import { ETHPool, ReentrantCaller } from '../typechain'
 import { Signer, BigNumber, ContractTransaction } from 'ethers'
 
 describe('ETHPool', function () {
@@ -317,6 +317,23 @@ describe('ETHPool', function () {
         it('AND tokenPrice is updated using the sent eth as a reward', async () => {
           expect(await ethpool.tokenPrice()).to.eq(WeiPerEther.mul(2))
         })
+      })
+    })
+  })
+
+  describe('the burn method is called by a contract which does a reentrant call', function () {
+    describe('GIVEN a contract that mints 100 tokens', () => {
+      let reentrantCaller: ReentrantCaller
+      beforeEach(async () => {
+        const ReentrantCallerFactory = await ethers.getContractFactory('ReentrantCaller')
+        reentrantCaller = await ReentrantCallerFactory.deploy(ethpool.address, WeiPerEther.mul(100))
+        await reentrantCaller.deployed()
+        await (await reentrantCaller.mint({ value: WeiPerEther.mul(100) })).wait()
+      })
+      it('WHEN burning 100 tokens with a reentrant call for another 100 tokens, THEN it should revert', async () => {
+        await expect(reentrantCaller.reentrantBurn()).to.be.revertedWith(
+          'contract call run out of gas and made the transaction revert'
+        )
       })
     })
   })
