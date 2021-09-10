@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { ETHPool } from '../typechain'
+import { ETHPool, ReentrantCaller } from '../typechain'
 import { Signer, BigNumber, ContractTransaction } from 'ethers'
 
 describe('ETHPool', function () {
@@ -287,6 +287,79 @@ describe('ETHPool', function () {
       })
       it('WHEN alice tries to burn 15, THEN it reverts', async () => {
         await expect(ethpool.burn(WeiPerEther.mul(15))).to.be.revertedWith('burn amount exceeds balance')
+      })
+    })
+  })
+
+  describe('another contract self-destructs sending eth to ETHPool before the first mint', function () {
+    describe('WHEN another contract selfdestructs sending funds to the contract', () => {
+      beforeEach(async () => {
+        const SelfdesctructableFactory = await ethers.getContractFactory('Selfdesctructable')
+        const selfdestructable = await SelfdesctructableFactory.deploy()
+        await selfdestructable.deployed()
+        await (await selfdestructable.depositEth({ value: WeiPerEther })).wait()
+        await (await selfdestructable.selfdestructTo(ethpool.address)).wait()
+      })
+      // ideally we'd have it as rewards in the first mint as well, but the
+      // math of how I defined the token price would break in that case
+      it('THEN tokenPrice is still 1', async () => {
+        expect(await ethpool.tokenPrice()).to.eq(WeiPerEther)
+      })
+      describe('AND WHEN minting', () => {
+        beforeEach(async () => {
+          ethpool = ethpool.connect(alice)
+          const tx = await ethpool.mint({ value: WeiPerEther })
+          await tx.wait()
+        })
+        it('THEN the mint is done with the tokenPrice of 1', async () => {
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(WeiPerEther)
+        })
+        it('AND tokenPrice is updated using the sent eth as a reward', async () => {
+          expect(await ethpool.tokenPrice()).to.eq(WeiPerEther.mul(2))
+        })
+      })
+    })
+  })
+
+  describe('the burn method is called by a contract which does a reentrant call', function () {
+    describe('GIVEN a contract that mints 100 tokens', () => {
+      let reentrantCaller: ReentrantCaller
+      beforeEach(async () => {
+        const ReentrantCallerFactory = await ethers.getContractFactory('ReentrantCaller')
+        reentrantCaller = await ReentrantCallerFactory.deploy(ethpool.address, WeiPerEther.mul(100))
+        await reentrantCaller.deployed()
+        await (await reentrantCaller.mint({ value: WeiPerEther.mul(100) })).wait()
+      })
+      it('WHEN burning 100 tokens with a reentrant call for another 100 tokens, THEN it should revert', async () => {
+        await expect(reentrantCaller.reentrantBurn()).to.be.revertedWith(
+          'contract call run out of gas and made the transaction revert'
+        )
+      })
+    })
+  })
+
+  describe('another contract self-destructs sending eth to ETHPool after the first mint', function () {
+    describe('WHEN another contract selfdestructs sending funds to the contract', () => {
+      beforeEach(async () => {
+        ethpool = ethpool.connect(alice)
+        const SelfdesctructableFactory = await ethers.getContractFactory('Selfdesctructable')
+        const selfdestructable = await SelfdesctructableFactory.deploy()
+        await selfdestructable.deployed()
+        await (await selfdestructable.depositEth({ value: WeiPerEther })).wait()
+        await (await ethpool.mint({ value: WeiPerEther })).wait()
+        await (await selfdestructable.selfdestructTo(ethpool.address)).wait()
+      })
+      it('AND tokenPrice is updated using the sent eth as a reward', async () => {
+        expect(await ethpool.tokenPrice()).to.eq(WeiPerEther.mul(2))
+      })
+      describe('AND WHEN minting again', () => {
+        beforeEach(async () => {
+          const tx = await ethpool.mint({ value: WeiPerEther.mul(2) })
+          await tx.wait()
+        })
+        it('THEN the mint is done with the updated tokenPrice', async () => {
+          expect(await ethpool.balanceOf(aliceAddress)).to.eq(WeiPerEther.mul(2))
+        })
       })
     })
   })

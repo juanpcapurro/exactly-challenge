@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title ETHPool, a rewards distribution contract
 /// @notice this is part of a tech challenge by Exactly Finance
 /// @author Capu
-contract ETHPool is ERC20{
+contract ETHPool is ERC20, ReentrancyGuard {
     /// @notice the address that can deposit rewards
     address public immutable teamAddress;
     uint256 private constant WAD=10**18;
@@ -56,7 +57,7 @@ contract ETHPool is ERC20{
     /// @notice Burn your POOL tokens, and get your ETH back plus any rewards
     /// @param amount the amount of tokens to burn
     /// @dev This doesnt change the tokenPrice, except in the case of a burn getting the totalSupply to zero, where the price would go back to 1
-    function burn(uint256 amount) public {
+    function burn(uint256 amount) public nonReentrant {
         // TODO: okay now I should get serious about reentrancy
         uint256 ethToReturn = ethFromBurn(amount, totalSupply(), address(this).balance);
         emit Burn(msg.sender, amount, ethToReturn);
